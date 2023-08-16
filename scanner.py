@@ -1,7 +1,8 @@
 import argparse
 import socket
+import pyfiglet
 
-parser = argparse.ArgumentParser(description="Simple TCP/UDP Scanner")
+parser = argparse.ArgumentParser(description="Simple TCP/UDP Port Scanner")
 parser.add_argument('address', type=str, help='IP address')
 parser.add_argument('-sT', action='store_true', help='TCP Scan')
 parser.add_argument('-sU', action='store_true', help='UDP Scan')
@@ -10,9 +11,9 @@ parser.add_argument('-p', type=int, help='Port to scan')
 args = parser.parse_args()
 
 
-'''def main():
-    pass'''
-
+def main():
+    header = pyfiglet.figlet_format('PyScanner')
+    print(header)
 
 def tcp_scan():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -29,9 +30,23 @@ def tcp_scan():
         print('Invalid hostname or IPv4 address.')
 
 def udp_scan():
-    pass
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.settimeout(1)
+    try:
+        sock.sendto(b'Payload', (args.address, args.p))
+        data, addr = sock.recvfrom(1024)
+        print('Port is open.')
+    except TimeoutError:
+        print("The server didn't respond so the scanned port may be open.")
+    except ConnectionResetError:
+        print('Port is closed.')
+    except OverflowError:
+        print('Port must be 0-65535')
+    except socket.gaierror:
+        print('Invalid hostname or IPv4 address.')
+    finally:
+        sock.close()
 
-tcp_scan()
 
 '''if __name__ == '__main__':
     main()'''
