@@ -7,6 +7,7 @@ parser = argparse.ArgumentParser(description="Simple TCP/UDP Port Scanner")
 parser.add_argument('address', type=str, help='IP address')
 parser.add_argument('-sT', action='store_true', help='TCP Scan')
 parser.add_argument('-sU', action='store_true', help='UDP Scan')
+#parser.add_argument('-p-', '--top-ports' action='store_true', help='Top ports scan')
 parser.add_argument('-p', type=int, help='Port to scan')
 
 args = parser.parse_args()
@@ -14,6 +15,11 @@ args = parser.parse_args()
 def main():
     header = pyfiglet.figlet_format('PyScanner')
     print(header)
+    '''if args.sT:
+        tcp_scan()
+    
+    elif args.sU:
+        udp_scan()'''
 
 def tcp_scan():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -46,6 +52,23 @@ def udp_scan():
     finally:
         sock.close()
 
+def tcp_top_ports():
+    top_ports = [21, 22, 23, 25, 53, 80, 110, 111, 139, 143, 443, 445, 993, 995, 1433, 1723, 3306, 3389, 5432, 5900, 8080]
+    open_ports = []
+    
+    for port in top_ports:
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)
+            r = sock.connect_ex((args.address, port))
+            if r == 0:
+                open_ports.append(port)
+            sock.close()
+        except:
+            pass
+
+    print(open_ports)
+            
 def perform_ping(ip_addr):
     reply = ping(ip_addr)
     if reply is not None:
@@ -56,12 +79,3 @@ def perform_ping(ip_addr):
 
 '''if __name__ == '__main__':
     main()'''
-
-
-'''
-if args.sT:
-    
-    
-elif args.sU:
-    print('UDP Scan')
-'''
