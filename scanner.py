@@ -3,12 +3,20 @@ import socket
 import pyfiglet
 from ping3 import ping
 
+def parse_port_range(port_range):
+    print(port_range)
+    start, end = map(int, port_range.split('-'))
+    if 1 <= start <= 65535 and 1 < end <= 65535 and start < end:
+        port_range_list = list(range(start, end + 1))
+    return port_range_list
+
 parser = argparse.ArgumentParser(description="Simple TCP/UDP Port Scanner")
 parser.add_argument('address', type=str, help='IP address')
 parser.add_argument('-sT', action='store_true', help='TCP Scan')
 parser.add_argument('-sU', action='store_true', help='UDP Scan')
-#parser.add_argument('-p-', '--top-ports' action='store_true', help='Top ports scan')
+#parser.add_argument('--top-ports' action='store_true', help='Top ports scan')
 parser.add_argument('-p', type=int, help='Port to scan')
+parser.add_argument('-r', '--range', type=parse_port_range, help='Range of ports to scan (e.g. 20-100)')
 
 args = parser.parse_args()
 
@@ -68,7 +76,21 @@ def tcp_top_ports():
             pass
 
     print(open_ports)
-            
+
+def scan_port_range():
+    open_ports = []
+    for port in args.range:
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)
+            r = sock.connect_ex((args.address, port))
+            if r == 0:
+                open_ports.append(port)
+            sock.close()
+        except:
+            pass
+    print(open_ports)
+
 def perform_ping(ip_addr):
     reply = ping(ip_addr)
     if reply is not None:
