@@ -17,6 +17,24 @@ def perform_ping(ip_addr):
     else:
         return f"{ip_addr} is not reachable."
 
+def banner_grabber(args):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect_ex((args.address, args.p))
+        try:
+            if args.p == 80:
+                sock.sendto(b'GET / HTTP/1.1\r\n\r\n', (args.address, args.p))
+                header = sock.recv(1024)
+                lines = header.split(b'\r\n')
+                for line in lines:
+                    if line.startswith(b"Server:"):
+                        print(line.decode('utf-8'))
+            else:
+                data = sock.recv(1024)
+                print(data.strip().decode('utf-8'))
+        except Exception as e:
+            print(f'Something went wrong. {e}')
+        #print(data.decode('utf-8'))
+
 def tcp_scan(args):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
@@ -87,19 +105,21 @@ def main():
     print(header)
 
     parser = argparse.ArgumentParser(description="Simple TCP/UDP Port Scanner")
+
     parser.add_argument('address', type=str, help='IP address') 
     parser.add_argument('-sT', action='store_true', help='TCP Scan') 
     parser.add_argument('-sU', action='store_true', help='UDP Scan') 
-    parser.add_argument('--top-ports', '-tp', action='store_true', help='Top ports scan')
+    parser.add_argument('-tp', action='store_true', help='Top ports scan')
     parser.add_argument('-p', type=int, help='Port to scan') 
-    parser.add_argument('--range', '-r', type=parse_port_range, help='Range of ports to scan (e.g. 20-100)') 
+    parser.add_argument('-r', type=parse_port_range, help='Range of ports to scan (e.g. 20-100)')
 
     args, unknown_args = parser.parse_known_args()
+    print(args)
 
     try:
         if unknown_args:
             print(f"Unrecognized parameters: {unknown_args}")
-        elif args.sT and args.range:
+        elif args.sT and args.r:
             scan_port_range(args)
         elif args.sT:
             tcp_scan(args)
@@ -109,6 +129,8 @@ def main():
             udp_scan(args)
     except argparse.ArgumentError:
         print('Fatal Parse Error')
+
+    banner_grabber(args)
 
 
 if __name__ == '__main__':
