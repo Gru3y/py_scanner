@@ -17,8 +17,6 @@ def perform_ping(ip_addr):
     else:
         return f"{ip_addr} is not reachable."
 
-
-
 def tcp_scan(args):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tcp_scan_result = False
@@ -36,7 +34,6 @@ def tcp_scan(args):
         print('Port must be 0-65535')
     except socket.gaierror:
         print('Invalid hostname or IPv4 address.')
-    
 
 def udp_scan(args):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -91,6 +88,7 @@ def banner_grabber(args):
         if tcp_scan_result:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect_ex((args.address, args.p))
+            sock.settimeout(2)
             try:
                 if args.p == 80:
                     sock.sendto(b'GET / HTTP/1.1\r\n\r\n', (args.address, args.p))
@@ -103,10 +101,9 @@ def banner_grabber(args):
                     data = sock.recv(1024)
                     print(data.strip().decode('utf-8'))
             except Exception as e:
-                print(f'Something went wrong. {e}')
+                print(f'Something went wrong. {str(e).title()}.')
         else:
-            print('Port TCP is closed, so i dont grab the banner.')
-        #print(data.decode('utf-8'))
+            pass
 
 def main():
     header = pyfiglet.figlet_format('PyScanner')
@@ -130,10 +127,10 @@ def main():
             print(f"Unrecognized parameters: {unknown_args}")
         elif args.sT and args.r:
             scan_port_range(args)
-        #elif args.sT:
-            #tcp_scan(args)
         elif args.sT and args.b:
             banner_grabber(args)
+        elif args.sT:
+            tcp_scan(args)
         elif args.top_ports:
             tcp_top_ports_scan(args)
         elif args.sU:
